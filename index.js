@@ -17,6 +17,7 @@ async function run() {
     try {
         const categoriesCollection = client.db("recycleZone").collection("categories");
         const productsCollection = client.db("recycleZone").collection("products");
+        const usersCollection = client.db("recycleZone").collection("users");
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -28,6 +29,12 @@ async function run() {
             const id = req.params.id;
             const query = { category_id: id };
             const result = await productsCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
             res.send(result)
         })
 
