@@ -18,6 +18,7 @@ async function run() {
         const categoriesCollection = client.db("recycleZone").collection("categories");
         const productsCollection = client.db("recycleZone").collection("products");
         const usersCollection = client.db("recycleZone").collection("users");
+        const ordersCollection = client.db("recycleZone").collection("orders");
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -32,9 +33,34 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const result = await usersCollection.findOne(query);
+            res.send(result)
+        })
+
         app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
+            res.send(result)
+        })
+
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const updatedDoc = {
+                $set: {
+                    role: 'buyer',
+                }
+            }
+            const option = { upsert: true }
+            const result = await usersCollection.updateOne(user, updatedDoc, option);
+            res.send(result)
+        })
+
+        app.post("/orders", async (req, res) => {
+            const order = req.body;
+            const result = await ordersCollection.insertOne(order)
             res.send(result)
         })
 
