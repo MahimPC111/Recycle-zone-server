@@ -77,24 +77,45 @@ async function run() {
             res.send(result)
         })
 
+        // getting all products of a certain user
         app.get('/products', async (req, res) => {
             const query = { email: req.query.email }
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
 
+        // adding new product 
         app.post('/products', async (req, res) => {
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.send(result)
         })
 
+        // update product
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+
+            const isAdvertised = req.body.isAdvertised;
+            const updatedDoc = {
+                $set: {
+                    isAdvertised: isAdvertised,
+                }
+            }
+            console.log(id, isAdvertised)
+            const option = { upsert: true }
+            const result = await productsCollection.updateOne(query, updatedDoc, option);
+            res.send(result)
+        })
+
+        // deleting a product
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await productsCollection.deleteOne(query);
             res.send(result)
         })
+
 
     }
     finally {
