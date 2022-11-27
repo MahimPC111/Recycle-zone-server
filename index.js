@@ -35,6 +35,13 @@ async function run() {
             res.send(result)
         })
 
+        // get the users through query
+        app.get('/users', async (req, res) => {
+            const query = { role: req.query.role };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result)
+        });
+
         // getting certain user
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
@@ -63,6 +70,31 @@ async function run() {
             res.send(result)
         })
 
+        // verify seller
+        app.put('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+
+            const isVerified = req.body.isVerified;
+            const updatedDoc = {
+                $set: {
+                    isVerified: isVerified,
+                }
+            }
+            console.log(id, isVerified)
+            const option = { upsert: true }
+            const result = await usersCollection.updateOne(query, updatedDoc, option);
+            res.send(result)
+        })
+
+        // deleting a user 
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(query);
+            res.send(result)
+        })
+
         // adding order from product list in the client site to database
         app.post("/orders", async (req, res) => {
             const order = req.body;
@@ -84,6 +116,13 @@ async function run() {
             res.send(result)
         })
 
+        // getting all products which are advertised
+        app.get('/products/isAdvertised', async (req, res) => {
+            const query = { isAdvertised: true }
+            const result = await productsCollection.find(query).toArray();
+            res.send(result)
+        })
+
         // adding new product 
         app.post('/products', async (req, res) => {
             const product = req.body;
@@ -91,7 +130,7 @@ async function run() {
             res.send(result)
         })
 
-        // update product
+        // advertise product
         app.put('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -102,7 +141,6 @@ async function run() {
                     isAdvertised: isAdvertised,
                 }
             }
-            console.log(id, isAdvertised)
             const option = { upsert: true }
             const result = await productsCollection.updateOne(query, updatedDoc, option);
             res.send(result)
@@ -115,7 +153,6 @@ async function run() {
             const result = await productsCollection.deleteOne(query);
             res.send(result)
         })
-
 
     }
     finally {
