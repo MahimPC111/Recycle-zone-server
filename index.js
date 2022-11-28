@@ -5,6 +5,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+// const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 app.use(cors())
 app.use(express.json());
@@ -124,6 +125,14 @@ async function run() {
             res.send(result)
         })
 
+        // get a order for payment
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await ordersCollection.findOne(query);
+            res.send(result)
+        })
+
         // getting all buyers of a seller
         app.get('/orders/buyers', async (req, res) => {
             const query = { seller_email: req.query.email };
@@ -203,7 +212,6 @@ async function run() {
             const result = await reportedItemsCollection.deleteOne(query);
             res.send(result)
         })
-
 
     }
     finally {
