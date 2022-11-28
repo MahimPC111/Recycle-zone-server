@@ -19,6 +19,7 @@ async function run() {
         const productsCollection = client.db("recycleZone").collection("products");
         const usersCollection = client.db("recycleZone").collection("users");
         const ordersCollection = client.db("recycleZone").collection("orders");
+        const reportedItemsCollection = client.db("recycleZone").collection("reportedItems");
 
         // loading all categories
         app.get('/categories', async (req, res) => {
@@ -35,14 +36,21 @@ async function run() {
             res.send(result)
         })
 
-        // get the users through query
+        // get the users through role
         app.get('/users', async (req, res) => {
             const query = { role: req.query.role };
             const result = await usersCollection.find(query).toArray();
             res.send(result)
         });
 
-        // getting certain user
+        // get the emails of all users 
+        // app.get('/usersEmail', async (req, res) => {
+        //     const query = {};
+        //     const result = await usersCollection.find(query).project({ email: 1 }).toArray();
+        //     res.send(result)
+        // })
+
+        // getting a certain user by email
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
@@ -151,6 +159,26 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await productsCollection.deleteOne(query);
+            res.send(result)
+        })
+
+        // adding reported items
+        app.put('/reportedItems', async (req, res) => {
+            const product = req.body;
+            const updatedDoc = {
+                $set: {
+                    reportedBy: 'buyer',
+                }
+            }
+            const option = { upsert: true }
+            const result = await reportedItemsCollection.updateOne(product, updatedDoc, option);
+            res.send(result)
+        })
+
+        // getting all reported items
+        app.get('/reportedItems', async (req, res) => {
+            const query = {}
+            const result = await reportedItemsCollection.find(query).toArray();
             res.send(result)
         })
 
