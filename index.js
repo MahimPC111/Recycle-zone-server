@@ -43,12 +43,19 @@ async function run() {
             res.send(result)
         });
 
-        // get the emails of all users 
-        // app.get('/usersEmail', async (req, res) => {
-        //     const query = {};
-        //     const result = await usersCollection.find(query).project({ email: 1 }).toArray();
-        //     res.send(result)
-        // })
+        // checking a user if admin or not
+        app.get('/users/admin/:email', async (req, res) => {
+            const query = { email: req.params.email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === 'admin' })
+        })
+
+        // checking a user if seller or not
+        app.get('/users/seller/:email', async (req, res) => {
+            const query = { email: req.params.email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isSeller: user?.role === 'seller' })
+        })
 
         // getting a certain user by email
         app.get('/users/:email', async (req, res) => {
@@ -110,16 +117,23 @@ async function run() {
             res.send(result)
         })
 
-        // getting all orders of a certain user
+        // getting all orders of a buyer
         app.get('/orders', async (req, res) => {
             const query = { email: req.query.email };
             const result = await ordersCollection.find(query).toArray();
             res.send(result)
         })
 
-        // getting all products of a certain user
+        // getting all buyers of a seller
+        app.get('/orders/buyers', async (req, res) => {
+            const query = { seller_email: req.query.email };
+            const result = await ordersCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        // getting all products of a seller
         app.get('/products', async (req, res) => {
-            const query = { email: req.query.email }
+            const query = { seller_email: req.query.email }
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
@@ -181,6 +195,15 @@ async function run() {
             const result = await reportedItemsCollection.find(query).toArray();
             res.send(result)
         })
+
+        // deleting a reported product
+        app.delete('/reportedItems/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await reportedItemsCollection.deleteOne(query);
+            res.send(result)
+        })
+
 
     }
     finally {
