@@ -123,6 +123,14 @@ async function run() {
             res.send(result)
         })
 
+
+        // getting all buyers of a seller
+        app.get('/orders/buyers', async (req, res) => {
+            const query = { seller_email: req.query.email };
+            const result = await ordersCollection.find(query).toArray();
+            res.send(result)
+        })
+
         // get a order for payment
         app.get('/orders/:id', async (req, res) => {
             const id = req.params.id;
@@ -131,12 +139,6 @@ async function run() {
             res.send(result)
         })
 
-        // getting all buyers of a seller
-        app.get('/orders/buyers', async (req, res) => {
-            const query = { seller_email: req.query.email };
-            const result = await ordersCollection.find(query).toArray();
-            res.send(result)
-        })
 
         // getting all products of a seller
         app.get('/products', async (req, res) => {
