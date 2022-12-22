@@ -4,6 +4,8 @@ const port = process.env.PORT || 5000;
 const app = express();
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.STRIPE_SK);
 
 app.use(cors())
 app.use(express.json());
@@ -12,6 +14,22 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vmux1xo.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        console.log('inside err', err)
+        return res.status(401).send({ message: 'Unauthorized access' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(401).send({ message: 'Unauthorized access' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run() {
     try {
         const categoriesCollection = client.db("recycleZone").collection("categories");
@@ -19,6 +37,13 @@ async function run() {
         const usersCollection = client.db("recycleZone").collection("users");
         const ordersCollection = client.db("recycleZone").collection("orders");
         const reportedItemsCollection = client.db("recycleZone").collection("reportedItems");
+
+        // token 
+        app.post('/jwt', async (req, res) => {
+            const userEmail = req.body;
+            const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
+            res.send({ token })
+        })
 
         // loading all categories
         app.get('/categories', async (req, res) => {
