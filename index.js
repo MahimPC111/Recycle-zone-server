@@ -37,12 +37,58 @@ async function run() {
         const usersCollection = client.db("recycleZone").collection("users");
         const ordersCollection = client.db("recycleZone").collection("orders");
         const reportedItemsCollection = client.db("recycleZone").collection("reportedItems");
+        const paymentsCollection = client.db("recycleZone").collection("payments");
 
         // token 
         app.post('/jwt', async (req, res) => {
             const userEmail = req.body;
             const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
             res.send({ token })
+        })
+
+        // for stripe payment
+        app.post('/create-payment-intent', async (req, res) => {
+            const price = req.body.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                "payment_method_types": [
+                    "card"
+                ],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        })
+
+        // for paid products
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentsCollection.insertOne(payment);
+
+            const option = { upsert: true }
+            const query1 = { _id: ObjectId(payment.orderId) }
+            const updateOrder = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updateOrderCollection = await ordersCollection.updateOne(query1, updateOrder, option)
+
+            const query2 = { _id: ObjectId(payment.productId) }
+            const updateProduct = {
+                $set: {
+                    status: 'sold'
+                }
+            }
+
+            const updateProductCollection = await productsCollection.updateOne(query2, updateProduct, option)
+            console.log(payment.orderId, payment.productId)
+
+            res.send(result)
         })
 
         // loading all categories
