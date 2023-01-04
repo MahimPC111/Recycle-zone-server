@@ -86,7 +86,6 @@ async function run() {
             }
 
             const updateProductCollection = await productsCollection.updateOne(query2, updateProduct, option)
-            console.log(payment.orderId, payment.productId)
 
             res.send(result)
         })
