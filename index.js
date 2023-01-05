@@ -100,7 +100,10 @@ async function run() {
         // loading single category with products
         app.get('/category/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { category_id: id };
+            const query = {
+                category_id: id,
+                status: 'unsold'
+            };
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
@@ -219,7 +222,10 @@ async function run() {
 
         // getting all products which are advertised
         app.get('/products/isAdvertised', async (req, res) => {
-            const query = { isAdvertised: true }
+            const query = {
+                isAdvertised: true,
+                status: 'unsold'
+            }
             const result = await productsCollection.find(query).toArray();
             res.send(result)
         })
